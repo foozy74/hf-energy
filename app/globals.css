@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --forest: #0E3B2E;
+    --graphite: #1E2522;
+    --lime: #C8F169;
+    --offwhite: #FAF1E8;
+    --solar: #FACC15;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #1E2522;
+    background-color: #0A1C16;
+  }
+
+  body {
+    overflow-x: hidden;
+    selection-background-color: #C8F169;
+    selection-color: #0E3B2E;
+  }
+
+  ::selection {
+    background-color: #C8F169;
+    color: #0E3B2E;
+  }
+}
+
+/* Custom animated glowing pulse */
+@keyframes energyPulse {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+    box-shadow: 0 0 0 0 rgba(200, 241, 105, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 14px rgba(200, 241, 105, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.7;
+    box-shadow: 0 0 0 0 rgba(200, 241, 105, 0);
+  }
+}
+
+.energy-node-pulse {
+  animation: energyPulse 2.5s infinite;
+}
+
+/* Flow line animation */
+@keyframes dashFlow {
+  from {
+    stroke-dashoffset: 40;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-energy-flow {
+  stroke-dasharray: 6, 6;
+  animation: dashFlow 1.5s linear infinite;
+}
+
+.animate-energy-flow-fast {
+  stroke-dasharray: 4, 4;
+  animation: dashFlow 0.8s linear infinite;
+}
+
+/* Glassmorphism clean-tech containers */
+.clean-glass-dark {
+  background: rgba(14, 59, 46, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 241, 105, 0.2);
+}
+
+.clean-glass-subtle {
+  background: rgba(30, 37, 34, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.clean-glass-card {
+  background: linear-gradient(135deg, rgba(14, 59, 46, 0.6) 0%, rgba(30, 37, 34, 0.8) 100%);
+  border: 1px solid rgba(200, 241, 105, 0.15);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+}
+
+.clean-glass-light {
+  background: rgba(250, 241, 232, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(14, 59, 46, 0.1);
+}
