@@ -3,18 +3,40 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '../context/LanguageContext';
-import { Sun, Battery, Building2, Car, ArrowRight, Zap, Info, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { useLiveEnergy } from '../context/LiveEnergyContext';
+import { Sun, Battery, Building2, Car, ArrowRight, Zap, Info, CheckCircle2, ShieldAlert, Radio } from 'lucide-react';
 
-type SystemMode = 'sunny' | 'peak' | 'island';
+type SystemMode = 'live' | 'sunny' | 'peak' | 'island';
 type ActiveNode = 'solar' | 'storage' | 'buildings' | 'ev';
 
 export const EcosystemDiagram: React.FC = () => {
   const { t } = useLanguage();
-  const [mode, setMode] = useState<SystemMode>('sunny');
+  const { 
+    isLive, 
+    solarDisplay, 
+    batterySocDisplay, 
+    batteryActionDisplay, 
+    homeConsumptionDisplay, 
+    gridDisplay, 
+    model 
+  } = useLiveEnergy();
+
+  const [mode, setMode] = useState<SystemMode>(isLive ? 'live' : 'sunny');
   const [selectedNode, setSelectedNode] = useState<ActiveNode>('solar');
 
-  // Dynamic values depending on simulation mode
+  // Dynamic values depending on simulation mode or real-time live telemetry
   const modeData = {
+    live: {
+      solarPower: solarDisplay,
+      batteryAction: `${batteryActionDisplay} • ${batterySocDisplay}`,
+      buildingConsumption: homeConsumptionDisplay,
+      evAction: gridDisplay,
+      gridFeed: gridDisplay,
+      headline: isLive
+        ? `Echtzeitdaten aus ${model}`
+        : `Telemetrie-Modus: ${model} bereit für Datenempfang`,
+      statusColor: isLive ? 'text-emerald-400' : 'text-lime',
+    },
     sunny: {
       solarPower: '920 kW',
       batteryAction: '+280 kW (Laden)',
@@ -49,37 +71,41 @@ export const EcosystemDiagram: React.FC = () => {
       title: t.system.solarTitle,
       category: 'Lokale Erzeugung',
       desc: t.system.solarDesc,
-      metric1: '1.240 kWp Gesamtleistung',
-      metric2: '1.280.000 kWh / Jahr',
+      metric1: mode === 'live' ? 'Bis zu 5.000 W PV-Eingang (4 MPPT)' : '1.240 kWp Gesamtleistung',
+      metric2: mode === 'live' ? 'Bis zu 12 Module anbindbar' : '1.280.000 kWh / Jahr',
       metric3: 'Ost-West & Südausrichtung',
       badge: 'Erzeugung',
     },
     storage: {
-      title: t.system.storageTitle,
-      category: 'Stationäre Speicherung',
-      desc: t.system.storageDesc,
-      metric1: '850 kWh Nettokapazität',
-      metric2: '6.000+ Ladezyklen (LiFePO4)',
-      metric3: 'Schwarzstart- und inselnetzfähig',
+      title: mode === 'live' || isLive ? 'Anker SOLIX Solarbank 4 E5000 Pro' : t.system.storageTitle,
+      category: 'Stationäre LiFePO4-Speicherung',
+      desc: (mode === 'live' || isLive)
+        ? 'Modulares Heimspeichersystem mit 5 bis 30 kWh Kapazität, 4 MPPT Solartrackern (5 kWp PV-Input) und bis zu 2.500 W AC-Ausgangsleistung.'
+        : t.system.storageDesc,
+      metric1: (mode === 'live' || isLive) ? '5 – 30 kWh modulare Kapazität' : '850 kWh Nettokapazität',
+      metric2: '10.000+ Ladezyklen (InfiniPower)',
+      metric3: '10 ms USV Notstrom-Umschaltung',
       badge: 'Puffer & Stabilität',
     },
     buildings: {
       title: t.system.buildingsTitle,
       category: 'Verbraucher & Wärme',
       desc: t.system.buildingsDesc,
-      metric1: '420 Wohneinheiten angebunden',
-      metric2: '4 Groß-Wärmepumpen (Heizung & WW)',
-      metric3: 'Smart Meter 15-Min. Auslesung',
+      metric1: mode === 'live' ? 'Smart Meter Gen 2 Messung' : '420 Wohneinheiten angebunden',
+      metric2: 'Wärmepumpe & Haushaltslasten',
+      metric3: 'Echtzeit-Optimierung',
       badge: 'Verbraucher',
     },
     ev: {
       title: t.system.evTitle,
-      category: 'Mobile Speicher (V2H/V2G)',
-      desc: t.system.evDesc,
-      metric1: 'Bis zu 1.800 kWh mobile Kapazität',
-      metric2: 'Wallboxen mit ISO 15118-20 Standard',
-      metric3: 'Vergütung für teilnehmende Fahrer',
-      badge: 'Flexibilität',
+      category: mode === 'live' ? 'Netzbezug / Einspeisung' : 'Mobile Speicher (V2H/V2G)',
+      desc: mode === 'live'
+        ? 'Aktueller Netzaustausch über das Smart Meter Gen 2 der Solarbank 4 E5000 Pro.'
+        : t.system.evDesc,
+      metric1: mode === 'live' ? '2.500 W AC-Einspeisung' : 'Bis zu 1.800 kWh mobile Kapazität',
+      metric2: mode === 'live' ? 'Intelligente Null-Einspeisung' : 'Wallboxen mit ISO 15118-20 Standard',
+      metric3: mode === 'live' ? 'Eigenverbrauchsoptimiert' : 'Vergütung für teilnehmende Fahrer',
+      badge: mode === 'live' ? 'Netzinteraktion' : 'Flexibilität',
     },
   };
 
@@ -106,6 +132,18 @@ export const EcosystemDiagram: React.FC = () => {
 
           {/* Interactive Simulation Scenario Switcher */}
           <div className="mt-8 inline-flex p-1.5 rounded-2xl bg-forest-950/80 border border-forest-700/80 max-w-full overflow-x-auto shadow-xl">
+            <button
+              onClick={() => setMode('live')}
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+                mode === 'live'
+                  ? 'bg-emerald-400 text-forest-950 shadow-[0_0_15px_rgba(52,211,153,0.5)]'
+                  : 'text-gray-300 hover:text-white'
+              }`}
+            >
+              <Radio className="w-4 h-4 animate-pulse" />
+              <span>{isLive ? 'Live: Anker Solix' : 'Live / Telemetrie'}</span>
+            </button>
+
             <button
               onClick={() => setMode('sunny')}
               className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${

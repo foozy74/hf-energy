@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LanguageProvider } from '../context/LanguageContext';
+import { LiveEnergyProvider } from '../context/LiveEnergyContext';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://herthafirnberg-energie.at'),
@@ -75,7 +76,9 @@ export default function RootLayout({
       </head>
       <body className="bg-forest-950 text-offwhite antialiased min-h-screen selection:bg-lime selection:text-forest-950">
         <LanguageProvider>
-          {children}
+          <LiveEnergyProvider>
+            {children}
+          </LiveEnergyProvider>
         </LanguageProvider>
       </body>
     </html>

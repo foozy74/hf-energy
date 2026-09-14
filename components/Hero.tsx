@@ -3,10 +3,12 @@
 import React from 'react';
 import Image from 'next/image';
 import { useLanguage } from '../context/LanguageContext';
-import { ArrowRight } from 'lucide-react';
+import { useLiveEnergy } from '../context/LiveEnergyContext';
+import { ArrowRight, Radio } from 'lucide-react';
 
 export const Hero: React.FC = () => {
   const { t } = useLanguage();
+  const { isLive, solarDisplay, batterySocDisplay, batteryActionDisplay, homeConsumptionDisplay, model } = useLiveEnergy();
 
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-28 pb-20 overflow-hidden bg-forest-950">
@@ -57,14 +59,15 @@ export const Hero: React.FC = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center sm:text-left flex flex-col lg:flex-row items-center justify-between gap-12">
         {/* Left Column: Typography & CTAs */}
         <div className="max-w-3xl">
-          {/* CD Badge */}
+          {/* CD Badge / Live Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-forest-800/80 border border-lime/30 text-xs font-semibold text-lime mb-6 backdrop-blur-md">
-            <span className="w-2 h-2 rounded-full bg-lime animate-ping" />
-            <span>{t.hero.badge}</span>
+            <span className={`w-2 h-2 rounded-full ${isLive ? 'bg-emerald-400 animate-ping' : 'bg-lime animate-pulse'}`} />
+            <span>
+              {isLive ? `LIVE TELEMETRIE • ${model}: ${solarDisplay} Erzeugung` : t.hero.badge}
+            </span>
           </div>
 
-          {/* H1 Headline strictly from CD:
-              H1 HEADLINE: Geometrisch • Bold • Großzügig • Klar */}
+          {/* H1 Headline strictly from CD */}
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight font-sans text-offwhite leading-[1.08] mb-6">
             <span>{t.hero.h1Line1}</span>
             <br />
@@ -75,7 +78,7 @@ export const Hero: React.FC = () => {
             </span>
           </h1>
 
-          {/* Subheadline: Geometrisch • Medium • Strukturiert */}
+          {/* Subheadline */}
           <p className="text-lg sm:text-xl text-offwhite/85 font-normal leading-relaxed max-w-2xl mb-8 font-sans">
             {t.hero.sub}
           </p>
@@ -101,29 +104,32 @@ export const Hero: React.FC = () => {
           {/* Real-Time Live Telemetry Metrics */}
           <div className="grid grid-cols-3 gap-4 pt-6 border-t border-forest-800/80 max-w-xl">
             <div className="flex flex-col">
-              <span className="text-2xl sm:text-3xl font-extrabold text-offwhite font-sans">
-                {t.hero.statSolar}
+              <span className="text-2xl sm:text-3xl font-extrabold text-offwhite font-sans flex items-center gap-1.5">
+                {isLive ? solarDisplay : t.hero.statSolar}
+                {isLive && (
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Live-Wert aktiv" />
+                )}
               </span>
               <span className="text-xs sm:text-sm text-lime/80 font-medium">
-                {t.hero.statSolarLabel}
+                {isLive ? 'Aktuelle PV-Leistung' : t.hero.statSolarLabel}
               </span>
             </div>
 
             <div className="flex flex-col border-l border-forest-800 pl-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-lime font-sans">
-                {t.hero.statAutarky}
+                {isLive ? batterySocDisplay : t.hero.statAutarky}
               </span>
               <span className="text-xs sm:text-sm text-offwhite/70 font-medium">
-                {t.hero.statAutarkyLabel}
+                {isLive ? `Speicher (${batteryActionDisplay})` : t.hero.statAutarkyLabel}
               </span>
             </div>
 
             <div className="flex flex-col border-l border-forest-800 pl-4">
               <span className="text-2xl sm:text-3xl font-extrabold text-offwhite font-sans">
-                {t.hero.statCO2}
+                {isLive ? homeConsumptionDisplay : t.hero.statCO2}
               </span>
               <span className="text-xs sm:text-sm text-lime/80 font-medium">
-                {t.hero.statCO2Label}
+                {isLive ? 'Hausverbrauch' : t.hero.statCO2Label}
               </span>
             </div>
           </div>
@@ -147,9 +153,9 @@ export const Hero: React.FC = () => {
             <div className="p-5 bg-forest-950/95 border-t border-forest-800/80 flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-lime animate-pulse" />
+                  <span className={`w-2.5 h-2.5 rounded-full ${isLive ? 'bg-emerald-400 animate-pulse' : 'bg-lime animate-pulse'}`} />
                   <span className="text-xs font-mono font-bold text-lime uppercase tracking-wider">
-                    Wienerbergcity
+                    {isLive ? 'LIVE • Anker Solix E5000 Pro' : 'Wienerbergcity'}
                   </span>
                 </div>
                 <div className="text-sm font-bold text-offwhite font-sans">
@@ -159,7 +165,9 @@ export const Hero: React.FC = () => {
 
               <div className="text-right">
                 <span className="text-xs font-mono text-gray-400 block">1100 Wien</span>
-                <span className="text-[11px] font-mono text-lime font-semibold">EEG § 16a ElWOG</span>
+                <span className="text-[11px] font-mono text-lime font-semibold">
+                  {isLive ? 'Online Telemetrie' : 'EEG § 16a ElWOG'}
+                </span>
               </div>
             </div>
           </div>
