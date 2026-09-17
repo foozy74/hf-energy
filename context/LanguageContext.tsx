@@ -77,6 +77,8 @@ export interface Translations {
     annualCO2Avoided: string;
     blackoutAutonomy: string;
     ctaCalculate: string;
+    infoToggleShow: string;
+    infoToggleHide: string;
   };
   benefits: {
     tag: string;
@@ -215,6 +217,8 @@ const translations: Record<Language, Translations> = {
       annualCO2Avoided: 'Tonnen CO₂ pro Jahr',
       blackoutAutonomy: 'Tage kontinuierliche Notstrom-Autonomie',
       ctaCalculate: 'Detaillierte Machbarkeitsanalyse anfordern',
+      infoToggleShow: 'Berechnungsgrundlagen & Formeln einblenden',
+      infoToggleHide: 'Berechnungsgrundlagen verbergen',
     },
     benefits: {
       tag: 'MEHRWERT FÜR ALLE',
@@ -387,6 +391,8 @@ const translations: Record<Language, Translations> = {
       annualCO2Avoided: 'Tons CO₂ avoided per year',
       blackoutAutonomy: 'Days of complete power autonomy',
       ctaCalculate: 'Request Detailed Feasibility Study',
+      infoToggleShow: 'Show Calculation Basis & Formulas',
+      infoToggleHide: 'Hide Calculation Basis',
     },
     benefits: {
       tag: 'VALUE FOR EVERYONE',

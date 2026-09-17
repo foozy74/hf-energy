@@ -2,7 +2,7 @@
 
 import React, { useState, useId } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { Calculator, Zap, TrendingUp, Leaf, Shield, ArrowRight, Check } from 'lucide-react';
+import { Calculator, Zap, TrendingUp, Leaf, Shield, ArrowRight, Check, Info, ChevronDown, ChevronUp } from 'lucide-react';
 
 export const SavingsCalculator: React.FC = () => {
   const { t } = useLanguage();
@@ -17,6 +17,7 @@ export const SavingsCalculator: React.FC = () => {
   const [pvKwp, setPvKwp] = useState<number>(180);
   const [batteryKwh, setBatteryKwh] = useState<number>(120);
   const [evCount, setEvCount] = useState<number>(12);
+  const [showInfo, setShowInfo] = useState<boolean>(false);
 
   // Quick Presets
   const applyPreset = (units: number, pv: number, batt: number, evs: number) => {
@@ -30,6 +31,13 @@ export const SavingsCalculator: React.FC = () => {
   // Avg apartment consumption: ~2,500 kWh/yr + general areas & heat pump: ~1,000 kWh/yr = 3,500 kWh/unit/yr
   const totalDemandKwh = apartments * 3500;
   const solarGenKwh = pvKwp * 1050; // 1050 kWh per kWp in Vienna
+
+  // PV area calculation: 450 Wp module is ~2.0 m² (2 m² / 0.45 kWp = 4.444 m² / kWp)
+  const pvAreaM2 = pvKwp <= 0.45 ? 2 : Math.round(pvKwp * (2 / 0.45));
+  const pvDisplayString =
+    pvKwp < 1
+      ? `${Math.round(pvKwp * 1000)} Wp (~${pvAreaM2} m²)`
+      : `${pvKwp} kWp (~${pvAreaM2.toLocaleString('de-AT')} m²)`;
 
   // Total storage capacity including 25 kWh per participating V2H EV
   const totalStorageCapacity = batteryKwh + evCount * 25;
@@ -57,7 +65,7 @@ export const SavingsCalculator: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="inline-block px-3.5 py-1 rounded-full bg-forest-800 border border-lime/30 text-lime text-xs font-bold tracking-widest uppercase mb-4">
             {t.calculator.tag}
           </span>
@@ -71,25 +79,159 @@ export const SavingsCalculator: React.FC = () => {
           {/* Preset Buttons */}
           <div className="mt-8 flex flex-wrap justify-center gap-2">
             <button
+              type="button"
+              onClick={() => applyPreset(2, 0.45, 0, 0)}
+              className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-forest-950/80 border border-forest-700 hover:border-lime text-gray-300 hover:text-white transition-all"
+            >
+              Kleinstanlage (2 WE · 450 Wp)
+            </button>
+            <button
+              type="button"
               onClick={() => applyPreset(24, 75, 50, 4)}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-forest-950/80 border border-forest-700 hover:border-lime text-gray-300 hover:text-white transition-all"
             >
               Kompakte Wohnanlage (24 WE)
             </button>
             <button
+              type="button"
               onClick={() => applyPreset(80, 240, 160, 16)}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-forest-950/80 border border-forest-700 hover:border-lime text-gray-300 hover:text-white transition-all"
             >
               Mittelgroßer Wohnblock (80 WE)
             </button>
             <button
+              type="button"
               onClick={() => applyPreset(420, 1240, 850, 60)}
               className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-lime/20 border border-lime text-lime hover:bg-lime hover:text-forest-950 transition-all"
             >
               Gesamtes Quartier Hertha Firnberg (420 WE)
             </button>
           </div>
+
+          {/* Info Toggle Button */}
+          <div className="mt-5 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setShowInfo(!showInfo)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-forest-950/90 border border-lime/40 hover:border-lime text-lime hover:bg-lime/10 transition-all shadow-sm cursor-pointer"
+            >
+              <Info className="w-4 h-4 text-lime" />
+              <span>{showInfo ? t.calculator.infoToggleHide : t.calculator.infoToggleShow}</span>
+              {showInfo ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible Info Field: Calculation Basis & Formulas */}
+        {showInfo && (
+          <div className="mb-10 bg-forest-950/95 border border-lime/40 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-sm transition-all animate-in fade-in duration-300">
+            <div className="flex items-start justify-between pb-4 mb-6 border-b border-forest-800">
+              <div>
+                <div className="flex items-center gap-2 text-lime font-bold text-base sm:text-lg">
+                  <Info className="w-5 h-5 flex-shrink-0" />
+                  <span>Berechnungsgrundlagen &amp; Formeln des Simulators</span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-300 mt-1">
+                  Rechts- und benchmarkkonforme Modellierung nach dem österreichischen EAG &amp; § 16a ElWOG (Erneuerbare-Energie-Gemeinschaften).
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInfo(false)}
+                className="text-gray-400 hover:text-white p-1.5 rounded-lg bg-forest-900 border border-forest-800 hover:border-forest-600 text-xs font-mono transition-all"
+                title="Schließen"
+              >
+                ✕ Schließen
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs sm:text-sm">
+              {/* Box 1: Referenzwerte & Benchmarks */}
+              <div className="bg-forest-900/60 border border-forest-800 rounded-xl p-4 sm:p-5 space-y-3">
+                <h4 className="font-bold text-lime text-sm flex items-center gap-2 pb-2 border-b border-forest-800/80">
+                  <span>1. Referenzwerte &amp; Benchmarks (Wien / Österreich)</span>
+                </h4>
+                <ul className="space-y-2.5 text-gray-300 leading-relaxed">
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">Strombedarf pro WE:</strong> Ø 3.500 kWh/Jahr (~2.500 kWh Haushaltsstrom + ~1.000 kWh Allgemeinstrom &amp; Wärmepumpenanteil).
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">Spezifischer Solarertrag:</strong> 1.050 kWh pro kWp/Jahr (Wiener Einstrahlungs-Benchmark laut PVGIS).
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">Kleinste PV-Einheit:</strong> 450 Wp (0,45 kWp) auf ca. 2,0 m² Modulfläche (~225 Wp/m² moderner Modulstandard).
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">V2H / V2G E-Fahrzeuge:</strong> 25 kWh nutzbarer mobiler Speicherpuffer pro teilnehmendem E-Auto.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">Ersparnis pro kWh:</strong> Ø 0,16 €/kWh (Differenz: Netzstrombezug ca. 0,30 €/kWh abzüglich EEG-Gemeinschaftsstrom ca. 0,14 €/kWh).
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">CO₂-Reduktion:</strong> 135 g CO₂/kWh vermieden (österr. Netzmix ca. 160 g/kWh vs. lokaler Solarstrom ca. 25 g/kWh).
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-lime font-bold">•</span>
+                    <span>
+                      <strong className="text-offwhite">Notstrombetrieb:</strong> 40 % der durchschnittlichen Tageslast als priorisierte kritische Infrastruktur (Inselbetrieb).
+                    </span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Box 2: Mathematische Formeln & Algorithmus */}
+              <div className="bg-forest-900/60 border border-forest-800 rounded-xl p-4 sm:p-5 space-y-3 font-mono text-xs">
+                <h4 className="font-bold text-lime text-sm flex items-center gap-2 pb-2 border-b border-forest-800/80 font-sans">
+                  <span>2. Mathematische Formeln &amp; Algorithmus</span>
+                </h4>
+                <div className="space-y-2.5 text-gray-300">
+                  <div className="bg-forest-950/80 p-2.5 rounded-lg border border-forest-800">
+                    <div className="text-lime font-semibold mb-0.5">Jahresstrombedarf:</div>
+                    <div className="text-offwhite">Bedarf = WE × 3.500 kWh</div>
+                  </div>
+                  <div className="bg-forest-950/80 p-2.5 rounded-lg border border-forest-800">
+                    <div className="text-solar font-semibold mb-0.5">Solare Jahreserzeugung:</div>
+                    <div className="text-offwhite">Erzeugung = kWp × 1.050 kWh</div>
+                  </div>
+                  <div className="bg-forest-950/80 p-2.5 rounded-lg border border-forest-800">
+                    <div className="text-cyan-300 font-semibold mb-0.5">Gesamtspeicherkapazität:</div>
+                    <div className="text-offwhite">Speicher = Batterie (kWh) + (E-Autos × 25 kWh)</div>
+                  </div>
+                  <div className="bg-forest-950/80 p-2.5 rounded-lg border border-forest-800">
+                    <div className="text-lime font-semibold mb-0.5">Autarkiegrad (%):</div>
+                    <div className="text-offwhite leading-relaxed">
+                      min(94%, Direktanteil (max. 35%) + Speicheranteil (max. 55%))
+                    </div>
+                  </div>
+                  <div className="bg-forest-950/80 p-2.5 rounded-lg border border-forest-800">
+                    <div className="text-emerald-400 font-semibold mb-0.5">Kostenersparnis &amp; Ökologie:</div>
+                    <div className="text-offwhite">Ersparnis (€/a) = (Bedarf × Autarkie / 100) × 0,16 €</div>
+                    <div className="text-offwhite mt-1">CO₂-Einsparung (t/a) = Eigenverbrauch × 0,000135 t</div>
+                    <div className="text-offwhite mt-1">Notstrom-Tage = Speicher / (Tagesbedarf × 40%)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Calculator Body Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -100,9 +242,20 @@ export const SavingsCalculator: React.FC = () => {
                 <Calculator className="w-5 h-5 text-lime" />
                 <span>Eigenschaften Ihrer Liegenschaft</span>
               </h3>
-              <span className="text-xs font-mono text-lime bg-forest-900 px-2.5 py-1 rounded-md border border-lime/30">
-                EAG konform
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowInfo(!showInfo)}
+                  title="Berechnungsgrundlagen anzeigen"
+                  className="inline-flex items-center gap-1.5 text-xs font-mono text-lime bg-forest-900 hover:bg-lime/10 px-2.5 py-1 rounded-md border border-lime/30 transition-all cursor-pointer"
+                >
+                  <Info className="w-3.5 h-3.5" />
+                  <span>Info</span>
+                </button>
+                <span className="text-xs font-mono text-lime bg-forest-900 px-2.5 py-1 rounded-md border border-lime/30">
+                  EAG konform
+                </span>
+              </div>
             </div>
 
             <div className="space-y-7">
@@ -113,21 +266,21 @@ export const SavingsCalculator: React.FC = () => {
                     {t.calculator.unitsLabel}
                   </label>
                   <span className="text-sm font-mono font-bold text-lime bg-forest-900 px-3 py-1 rounded-lg border border-forest-700">
-                    {apartments} Wohnungen
+                    {apartments} {apartments === 1 ? 'Wohnung' : 'Wohnungen'}
                   </span>
                 </div>
                 <input
                   id={unitsInputId}
                   type="range"
-                  min="4"
+                  min="2"
                   max="500"
-                  step="2"
+                  step="1"
                   value={apartments}
                   onChange={(e) => setApartments(Number(e.target.value))}
                   className="w-full h-2 bg-forest-800 rounded-lg appearance-none cursor-pointer accent-lime"
                 />
                 <div className="flex justify-between text-[11px] text-gray-400 mt-1 font-mono">
-                  <span>4 WE</span>
+                  <span>2 WE</span>
                   <span>100 WE</span>
                   <span>250 WE</span>
                   <span>500 WE</span>
@@ -141,24 +294,78 @@ export const SavingsCalculator: React.FC = () => {
                     {t.calculator.pvLabel}
                   </label>
                   <span className="text-sm font-mono font-bold text-solar bg-forest-900 px-3 py-1 rounded-lg border border-forest-700">
-                    {pvKwp} kWp (~{Math.round(pvKwp * 5.5)} m²)
+                    {pvDisplayString}
                   </span>
                 </div>
                 <input
                   id={pvInputId}
                   type="range"
-                  min="10"
+                  min="0.45"
                   max="1500"
-                  step="10"
+                  step="any"
                   value={pvKwp}
-                  onChange={(e) => setPvKwp(Number(e.target.value))}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    if (val <= 0.6) setPvKwp(0.45);
+                    else if (val < 2) setPvKwp(Math.round(val * 2) / 2);
+                    else if (val < 20) setPvKwp(Math.round(val));
+                    else if (val < 100) setPvKwp(Math.round(val / 5) * 5);
+                    else setPvKwp(Math.round(val / 10) * 10);
+                  }}
                   className="w-full h-2 bg-forest-800 rounded-lg appearance-none cursor-pointer accent-solar"
                 />
                 <div className="flex justify-between text-[11px] text-gray-400 mt-1 font-mono">
-                  <span>10 kWp</span>
+                  <span>450 Wp (2 m²)</span>
+                  <span>100 kWp</span>
                   <span>500 kWp</span>
-                  <span>1.000 kWp</span>
                   <span>1.500 kWp</span>
+                </div>
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <span className="text-gray-400">Schnellauswahl:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPvKwp(0.45)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-all cursor-pointer ${
+                      pvKwp === 0.45
+                        ? 'bg-solar/20 border-solar text-solar font-bold'
+                        : 'bg-forest-900 border-forest-700 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    450 Wp (2 m²)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPvKwp(10)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-all cursor-pointer ${
+                      pvKwp === 10
+                        ? 'bg-solar/20 border-solar text-solar font-bold'
+                        : 'bg-forest-900 border-forest-700 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    10 kWp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPvKwp(50)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-all cursor-pointer ${
+                      pvKwp === 50
+                        ? 'bg-solar/20 border-solar text-solar font-bold'
+                        : 'bg-forest-900 border-forest-700 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    50 kWp
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPvKwp(180)}
+                    className={`px-2 py-0.5 rounded text-[11px] font-mono border transition-all cursor-pointer ${
+                      pvKwp === 180
+                        ? 'bg-solar/20 border-solar text-solar font-bold'
+                        : 'bg-forest-900 border-forest-700 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    180 kWp
+                  </button>
                 </div>
               </div>
 
@@ -229,9 +436,15 @@ export const SavingsCalculator: React.FC = () => {
                   <TrendingUp className="w-4 h-4" />
                   <span>{t.calculator.resultSavings}</span>
                 </span>
-                <span className="text-[10px] font-mono bg-forest-950/80 text-gray-300 px-2 py-0.5 rounded border border-forest-700">
-                  Ø 0,16 € Ersparnis / kWh
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowInfo(true)}
+                  title="Berechnungsgrundlagen anzeigen"
+                  className="text-[10px] font-mono bg-forest-950/80 hover:bg-forest-900 text-lime px-2 py-0.5 rounded border border-lime/30 flex items-center gap-1 transition-all cursor-pointer"
+                >
+                  <Info className="w-3 h-3" />
+                  <span>Ø 0,16 € Ersparnis / kWh</span>
+                </button>
               </div>
 
               <div className="text-4xl sm:text-5xl font-extrabold text-offwhite font-sans tracking-tight my-2">
